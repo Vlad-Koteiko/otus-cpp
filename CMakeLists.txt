@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 
@@ -10,21 +10,24 @@ option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
 configure_file(version.h.in version.h)
 
-add_executable(helloworld_cli ./src/main.cpp)
-add_library(helloworld ./libs/lib.cpp)
+set(SOURCE_FILE 
+      ./src/main.cpp
+)
+
+set(LIBS_FILE 
+       ./libs/lib.cpp
+)
+
+add_executable(helloworld_cli ${SOURCE_FILE})
+
+add_library(helloworld ${LIBS_FILE})
 
 set_target_properties(helloworld_cli helloworld PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
 )
 
-target_include_directories(helloworld
-    PRIVATE "${CMAKE_BINARY_DIR}/src"
-)
-
-target_include_directories(helloworld
-    PRIVATE "${CMAKE_BINARY_DIR}/libs"
-)
+target_include_directories(helloworld_cli PRIVATE libs)
 
 target_include_directories(helloworld
     PRIVATE "${CMAKE_BINARY_DIR}"
@@ -54,31 +57,19 @@ if(WITH_BOOST_TEST)
     )
 endif()
 
-if (MSVC)
     target_compile_options(helloworld_cli PRIVATE
-        /W4
+        -Wall -Wextra -pedantic -Werror -flto -fsanitize=address,undefined
     )
+
     target_compile_options(helloworld PRIVATE
-        /W4
+        -Wall -Wextra -pedantic -Werror     
     )
-    if(WITH_BOOST_TEST)
-        target_compile_options(test_version PRIVATE
-            /W4
-        )
-    endif()
-else ()
-    target_compile_options(helloworld_cli PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
-    target_compile_options(helloworld PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
+    
     if(WITH_BOOST_TEST)
         target_compile_options(test_version PRIVATE
             -Wall -Wextra -pedantic -Werror
         )
     endif()
-endif()
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
 
