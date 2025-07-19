@@ -23,9 +23,10 @@ add_executable(helloworld_cli ${SOURCE_FILE})
 add_library(helloworld ${LIBS_FILE})
 
 set_target_properties(helloworld_cli helloworld PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
+
 
 target_include_directories(helloworld_cli PRIVATE libs)
 
@@ -39,10 +40,10 @@ target_link_libraries(helloworld_cli PRIVATE
 
 if(WITH_BOOST_TEST)
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-    add_executable(test_version test_version.cpp)
+    add_executable(test_version test_version.cpp )
 
     set_target_properties(test_version PROPERTIES
-        CXX_STANDARD 14
+        CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
     )
 
@@ -70,6 +71,8 @@ endif()
             -Wall -Wextra -pedantic -Werror
         )
     endif()
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined")
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
 
