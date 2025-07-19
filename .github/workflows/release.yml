@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - ip_filter
       - feature/github_actions
 
 jobs:
