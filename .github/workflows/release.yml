@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - ip_filter
+      - allocator
       - feature/github_actions
 
 jobs:
