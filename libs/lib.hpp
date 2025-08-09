@@ -1,165 +1,64 @@
 #pragma once
-#include <array>
+#include "details.hpp"
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-#include <memory>
+#include <string>
+#include <type_traits>
 
 int version();
 
-constexpr std::uint64_t factorial(std::uint32_t value) noexcept {
+template <typename T,
+          typename std::enable_if_t<std::is_integral<T>::value, int> = 0>
+inline void print_ip(T value) {
 
-  if (value == 0 || value == 1) {
-    return 1;
+  std::string str;
+
+  for (std::size_t i = sizeof(T) - 1; i > 0; --i) {
+    str += std::to_string(static_cast<std::uint8_t>(value >> (8 * i)));
+    str += '.';
   }
 
-  return value * factorial(value - 1);
+  str += std::to_string(static_cast<std::uint8_t>(value));
+  std::cout << str << std::endl;
 }
 
-template <typename T, size_t N> class PoolAllocator {
-private:
-  std::array<T, (sizeof(T) * N)> pool;
+template <typename T, typename std::enable_if_t<
+                          std::is_same<T, std::string>::value, int> = 0>
+inline void print_ip(T str) {
 
-  std::uint8_t *ptr;
-  std::uint8_t *ptrMax;
-
-public:
-  using value_type = T;
-
-  PoolAllocator()
-      : pool(), ptr(reinterpret_cast<std::uint8_t *>(pool.data())),
-        ptrMax(reinterpret_cast<std::uint8_t *>(pool.data() + N)) {}
-
-  template <typename U>
-  PoolAllocator(const PoolAllocator<U, N> &)
-      : pool(), ptr(reinterpret_cast<std::uint8_t *>(pool.data())),
-        ptrMax(reinterpret_cast<std::uint8_t *>(pool.data() + N)) {}
-
-  // THIS IS THE CUSTOM PART - allocate from our pool, not system
-  T *allocate(size_t n) {
-
-    size_t bytes_needed = n * sizeof(T);
-
-    if ((ptr + bytes_needed) > ptrMax) {
-      std::cout << "Pool exhausted! allocate \n";
-      throw std::bad_alloc();
-    }
-
-    T *result = reinterpret_cast<T *>(ptr);
-    ptr += bytes_needed;
-    return result;
-  }
-
-  void deallocate([[maybe_unused]] T *ptrData, [[maybe_unused]] size_t n) {
-
-    size_t bytes_needed = n * sizeof(T);
-    ptr -= bytes_needed;
-
-    if (ptr < reinterpret_cast<std::uint8_t *>(pool.data())) {
-
-      std::cout << "Pool exhausted! deallocate \n";
-      throw std::bad_alloc();
-    }
-  }
-
-  template <typename U> struct rebind {
-    using other = PoolAllocator<U, N>;
-  };
-};
-
-// Required comparison operators
-template <typename T, size_t S1, typename U, size_t S2>
-bool operator==(const PoolAllocator<T, S1> &, const PoolAllocator<U, S2> &) {
-  return true;
+  std::cout << str << std::endl;
 }
 
-template <typename T, size_t S1, typename U, size_t S2>
-bool operator!=(const PoolAllocator<T, S1> &, const PoolAllocator<U, S2> &) {
-  return false;
+template <typename T,
+          typename std::enable_if_t<details::is_container_v<T>, int> = 0>
+inline void print_ip(const T &cont) {
+
+  std::string str;
+
+  for (auto v : cont) {
+
+    str += std::to_string(v);
+    str += '.';
+  }
+
+  str.pop_back();
+  std::cout << str << std::endl;
 }
 
-//---------------------------------------------------------------------------------
+template <typename T,
+          typename std::enable_if_t<
+              details::is_tuple_v<T> && details::tuple_fold_v<T>, int> = 0>
+inline void print_ip(const T &typle) {
 
-template <typename T, typename Allocator = std::allocator<T>>
-class CustomContainer {
-private:
-  struct ListNode {
-    T data;
-    ListNode *next;
+  std::string str;
 
-    ListNode() : data(), next(nullptr) {}
-    ListNode(const T &value) : data(value), next(nullptr) {}
-  };
+  std::apply(
+      [&str](const auto &...args) {
+        ((str += std::to_string(args), str += '.'), ...);
+      },
+      typle);
 
-  using NodeAllocator = typename std::allocator_traits<
-      Allocator>::template rebind_alloc<ListNode>;
-  using NodeAllocatorTraits = std::allocator_traits<NodeAllocator>;
-
-  ListNode *head;
-  ListNode *tail;
-  NodeAllocator allocator;
-  size_t size_;
-
-public:
-  class Iterator {
-  private:
-    ListNode *current;
-
-  public:
-    Iterator(ListNode *node) : current(node) {}
-
-    T &operator*() const { return current->data; }
-    T *operator->() const { return &current->data; }
-
-    Iterator &operator++() {
-      current = current->next;
-      return *this;
-    }
-
-    Iterator operator++(int) {
-      Iterator tmp = *this;
-      ++(*this);
-      return tmp;
-    }
-
-    bool operator==(const Iterator &other) const {
-      return current == other.current;
-    }
-    bool operator!=(const Iterator &other) const { return !(*this == other); }
-  };
-
-  Iterator begin() { return Iterator(head); }
-  Iterator end() { return Iterator(nullptr); }
-
-  CustomContainer(const Allocator &alloc = Allocator())
-      : head(nullptr), tail(nullptr), allocator(alloc),size_(0) {}
-
-  ~CustomContainer() { clear(); }
-
-  void push_back(const T &value) {
-    ListNode *newNode = NodeAllocatorTraits::allocate(allocator, 1);
-    NodeAllocatorTraits::construct(allocator, newNode, value);
-
-    if (!head) {
-      head = tail = newNode;
-    } else {
-      tail->next = newNode;
-      tail = newNode;
-    }
-    ++size_;
-  }
-
-  void clear() {
-    while (head) {
-      ListNode *next = head->next;
-      NodeAllocatorTraits::destroy(allocator, head);
-      NodeAllocatorTraits::deallocate(allocator, head, 1);
-      head = next;
-    }
-    tail = nullptr;
-    size_ = 0;
-  }
-
-  [[nodiscard]] bool empty() const { return head == nullptr; }
-  [[nodiscard]] std::size_t size () const { return size_; }
-};
+  str.pop_back();
+  std::cout << str << std::endl;
+}

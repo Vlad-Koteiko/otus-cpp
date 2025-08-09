@@ -2,72 +2,24 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
-#include <map>
 
 int main(int, char **) {
   std::cout << "Version: " << version() << std::endl;
 
-  try {
-    {
-      std::map<int, std::uint64_t, std::less<int>,
-               PoolAllocator<std::pair<const int, std::uint64_t>, 10>>
-          foo;
+  print_ip(std::int8_t{-1});
 
-      for (int i = 0; i < 10; ++i) {
-        foo.insert({i, factorial(i)});
-      }
+  print_ip(std::int16_t{0});
+  
+  print_ip(std::int32_t{2130706433});
 
-      // foo.insert({11,11}); // bad alloc
+  print_ip(std::int64_t{8875824491850138409});
+  
+  print_ip(std::string{"Hello,World!"});
+  
+  print_ip(std::vector<int>{100,200,300,400 });
 
-      for (auto [f, s] : foo) {
-        std::cout << " first " << f << " second " << s << std::endl;
-      }
-    }
-    //--------------------------------------------------------------------
-    {
-      CustomContainer<int> container;
+  print_ip(std::list<short>{400,300,200,100 });
 
-      std::cout << "Container size: " << container.size() << " empty "
-                << container.empty() << std::endl;
-      for (int i = 0; i < 10; ++i) {
-        container.push_back(i);
-      }
-
-      std::cout << "Container elements: ";
-      for (auto it = container.begin(); it != container.end(); ++it) {
-        std::cout << *it << " ";
-      }
-
-      std::cout << std::endl;
-
-      std::cout << "Container size: " << container.size() << " empty "
-                << container.empty() << std::endl;
-
-
-      CustomContainer<int, PoolAllocator<int, 10>> containerWithAlloc;
-      containerWithAlloc.push_back(42);
-      containerWithAlloc.push_back(43);
-      containerWithAlloc.push_back(44);
-      containerWithAlloc.push_back(45);
-      containerWithAlloc.push_back(46);
-      containerWithAlloc.push_back(47);
-      containerWithAlloc.push_back(48);
-      containerWithAlloc.push_back(49);
-      containerWithAlloc.push_back(50);
-      containerWithAlloc.push_back(51);
-      // containerWithAlloc.push_back(52); // bad alloc
-
-      std::cout << "Container with custom allocator: ";
-      for (auto val : containerWithAlloc) {
-        std::cout << val << " ";
-      }
-    }
-    std::cout << std::endl;
-
-  } catch (...) {
-
-    std::cerr << " Exception !" << std::endl;
-  }
-
+  print_ip(std::make_tuple(123,456,789,0 ));
   return 0;
 }
