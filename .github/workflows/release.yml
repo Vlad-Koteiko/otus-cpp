@@ -52,8 +52,8 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install doxygen graphviz -y
       - name: Generate Documentation
-        run: |
-          doxygen Doxyfile
+        run: ls -l
+        run: doxygen Doxyfile.txt
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
