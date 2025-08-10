@@ -52,6 +52,7 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install doxygen graphviz -y
       - name: Generate Documentation
+        run: mkdir docs
         run: ls -l
         run: doxygen Doxyfile.txt
       - name: Deploy to GitHub Pages

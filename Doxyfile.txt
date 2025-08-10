@@ -18,7 +18,7 @@ EXTRACT_STATIC         = NO
 #---------------------------------------------------------------------------
 # Настройки вывода
 #---------------------------------------------------------------------------
-OUTPUT_DIRECTORY       = ./docs/doxygen
+OUTPUT_DIRECTORY       = ./docs
 CREATE_SUBDIRS         = YES
 OUTPUT_LANGUAGE        = English
 
