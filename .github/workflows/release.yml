@@ -53,12 +53,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install doxygen graphviz -y
       - name: Generate Documentation
         run: |
-          mkdir docs
-          ls -l
-          doxygen Doxyfile.txt
+          mkdir -p docs/html
+          doxygen Doxyfile
+          ls -la docs/html/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/doxygen/html
+          publish_dir: ./docs/html
           keep_files: false
+          force_orphan: true
