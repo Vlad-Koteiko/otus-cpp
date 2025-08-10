@@ -53,7 +53,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install doxygen graphviz -y
       - name: Generate Documentation
         run: |
-          mkdir -p docs/html
+          mkdir docs
           doxygen Doxyfile
           ls -la docs/html/
       - name: Deploy to GitHub Pages
