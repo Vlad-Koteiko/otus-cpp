@@ -4,7 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 
-project(helloworld VERSION ${PROJECT_VESRION})
+project(print_ip VERSION ${PROJECT_VESRION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
@@ -20,9 +20,9 @@ set(LIBS_FILE
 
 add_executable(helloworld_cli ${SOURCE_FILE})
 
-add_library(helloworld ${LIBS_FILE})
+add_library(print_ip ${LIBS_FILE})
 
-set_target_properties(helloworld_cli helloworld PROPERTIES
+set_target_properties(helloworld_cli print_ip PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
@@ -30,12 +30,12 @@ set_target_properties(helloworld_cli helloworld PROPERTIES
 
 target_include_directories(helloworld_cli PRIVATE libs)
 
-target_include_directories(helloworld
+target_include_directories(print_ip
     PRIVATE "${CMAKE_BINARY_DIR}"
 )
 
 target_link_libraries(helloworld_cli PRIVATE
-    helloworld
+    print_ip
 )
 
 if(WITH_BOOST_TEST)
@@ -54,7 +54,7 @@ if(WITH_BOOST_TEST)
 
     target_link_libraries(test_version
         ${Boost_LIBRARIES}
-        helloworld
+        print_ip
     )
 endif()
 
@@ -62,7 +62,7 @@ endif()
         -Wall -Wextra -pedantic -Werror -flto -fsanitize=address,undefined
     )
 
-    target_compile_options(helloworld PRIVATE
+    target_compile_options(print_ip PRIVATE
         -Wall -Wextra -pedantic -Werror     
     )
     
