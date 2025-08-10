@@ -6,6 +6,7 @@ on:
       - master
       - ip_filter
       - allocator
+      - SFINAE
       - feature/github_actions
 
 jobs:
@@ -40,3 +41,23 @@ jobs:
           asset_path: ./helloworld-0.0.${{ github.run_number }}-Linux.deb
           asset_name: helloworld-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
+  doxygen:
+    needs: build
+    if: github.ref == 'refs/heads/SFINAE'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install doxygen graphviz -y
+      - name: Generate Documentation
+        run: |
+          cd docs/doxygen
+          doxygen ../../Doxyfile
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/doxygen/html
+          keep_files: false
