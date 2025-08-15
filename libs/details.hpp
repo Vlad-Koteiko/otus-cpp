@@ -17,18 +17,14 @@ struct is_container<std::list<T, Alloc>> : std::true_type {};
 template <typename T>
 inline constexpr bool is_container_v = is_container<T>::value;
 
-template <typename... Ts> constexpr bool types_fold() {
-  if constexpr (sizeof...(Ts) == 0) {
-    return true;
-  } else {
-    return (std::is_same_v<std::tuple_element_t<0, std::tuple<Ts...>>, Ts> && ...);
-  }
-}
-
-template <typename Tuple> struct tuple_fold : std::false_type {};
+template <typename Tuple, typename = void>
+struct tuple_fold : std::false_type {};
 
 template <typename... Ts>
-struct tuple_fold<std::tuple<Ts...>> : std::bool_constant<types_fold<Ts...>()> {};
+struct tuple_fold<
+    std::tuple<Ts...>,
+    std::void_t<std::enable_if_t<(std::is_same_v<Ts, std::tuple_element_t<0, std::tuple<Ts...>>> && ...)>>
+> : std::true_type {};
 
 template <typename Tuple>
 constexpr bool tuple_fold_v = tuple_fold<Tuple>::value;
