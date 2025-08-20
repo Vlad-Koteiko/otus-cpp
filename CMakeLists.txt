@@ -15,7 +15,10 @@ set(SOURCE_FILE
 )
 
 set(LIBS_FILE 
-       ./libs/lib.cpp
+       ./libs/controller/controller.cpp
+       ./libs/model/model.cpp
+       ./libs/view/view.cpp
+       ./libs/shapes.cpp
 )
 
 add_executable(helloworld_cli ${SOURCE_FILE})
