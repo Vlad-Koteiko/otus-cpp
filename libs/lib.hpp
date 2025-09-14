@@ -1,64 +1,137 @@
 #pragma once
-#include "details.hpp"
 #include <cassert>
-#include <cstdint>
 #include <iostream>
-#include <string>
-#include <type_traits>
+#include <unordered_map>
 
 int version();
 
-template <typename T,
-          typename std::enable_if_t<std::is_integral<T>::value, int> = 0>
-inline void print_ip(T value) {
+#include <unordered_map>
+#include <tuple>
+#include <cstddef>
+#include <iterator>
 
-  std::string str;
+template <typename T, T defaultValue>
+class Matrix {
+private:
+    using Pool       = std::unordered_map<std::size_t, std::unordered_map<std::size_t, T>>;
+    using InnerMap   = std::unordered_map<std::size_t, T>;
+    using RowIter    = typename Pool::iterator;
+    using ConstRowIter = typename Pool::const_iterator;
+    using ColIter    = typename InnerMap::iterator;
+    using ConstColIter = typename InnerMap::const_iterator;
+ 
+    Pool pool_;
 
-  for (std::size_t i = sizeof(T) - 1; i > 0; --i) {
-    str += std::to_string(static_cast<std::uint8_t>(value >> (8 * i)));
-    str += '.';
-  }
+    struct ValueProxy {
+        Pool &pool;
+        std::size_t row;
+        std::size_t col;
 
-  str += std::to_string(static_cast<std::uint8_t>(value));
-  std::cout << str << std::endl;
-}
+        operator T() const {
+            auto rowIt = pool.find(row);
+            if (rowIt != pool.end()) {
+                auto colIt = rowIt->second.find(col);
+                if (colIt != rowIt->second.end()) {
+                    return colIt->second;
+                }
+            }
+            return defaultValue;
+        }
 
-template <typename T, typename std::enable_if_t<
-                          std::is_same<T, std::string>::value, int> = 0>
-inline void print_ip(T str) {
+        ValueProxy &operator=(T value) {
+            if (value == defaultValue) {
+                auto rowIt = pool.find(row);
+                if (rowIt != pool.end()) {
+                    rowIt->second.erase(col);
+                    if (rowIt->second.empty()) {
+                        pool.erase(rowIt);
+                    }
+                }
+            } else {
+                pool[row][col] = value;
+            }
+            return *this;
+        }
+    };
 
-  std::cout << str << std::endl;
-}
+    struct RowProxy {
+        Pool &pool;
+        std::size_t row;
 
-template <typename T,
-          typename std::enable_if_t<details::is_container_v<T>, int> = 0>
-inline void print_ip(const T &cont) {
+        ValueProxy operator[](std::size_t col) {
+            return ValueProxy{pool, row, col};
+        }
+    };
 
-  std::string str;
+public:
+    [[nodiscard]] RowProxy operator[](std::size_t row) noexcept {
+        return RowProxy{pool_, row};
+    }
 
-  for (auto v : cont) {
+    [[nodiscard]] std::size_t size() const noexcept {
+        std::size_t total = 0;
+        for (const auto &row : pool_) {
+            total += row.second.size();
+        }
+        return total;
+    }
 
-    str += std::to_string(v);
-    str += '.';
-  }
+    class Iterator {
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type        = std::tuple<std::size_t, std::size_t, T>;
+        using difference_type   = std::ptrdiff_t;
 
-  str.pop_back();
-  std::cout << str << std::endl;
-}
+        Iterator(RowIter rowIt, RowIter rowEnd)
+            : rowIt_(rowIt), rowEnd_(rowEnd)
+        {
+            if (rowIt_ != rowEnd_) {
+                colIt_ = rowIt_->second.begin();
+            }
+        }
 
-template <typename T,
-          typename std::enable_if_t<
-              details::is_tuple_v<T> && details::tuple_fold_v<T>, int> = 0>
-inline void print_ip(const T &typle) {
+        value_type operator*() const {
+            return { rowIt_->first, colIt_->first, colIt_->second };
+        }
 
-  std::string str;
+        Iterator &operator++() {
+            ++colIt_;
+            while (rowIt_ != rowEnd_ && colIt_ == rowIt_->second.end()) {
+                ++rowIt_;
+                if (rowIt_ != rowEnd_) {
+                    colIt_ = rowIt_->second.begin();
+                }
+            }
+            return *this;
+        }
 
-  std::apply(
-      [&str](const auto &...args) {
-        ((str += std::to_string(args), str += '.'), ...);
-      },
-      typle);
+        Iterator operator++(int) {
+            Iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
 
-  str.pop_back();
-  std::cout << str << std::endl;
-}
+        bool operator==(const Iterator &other) const {
+            return rowIt_ == other.rowIt_ &&
+                   (rowIt_ == rowEnd_ || colIt_ == other.colIt_);
+        }
+
+        bool operator!=(const Iterator &other) const {
+            return !(*this == other);
+        }
+
+    private:
+        RowIter rowIt_;
+        RowIter rowEnd_;
+        ColIter colIt_;
+    };
+
+    [[nodiscard]] Iterator begin() noexcept {
+        return Iterator(pool_.begin(), pool_.end());
+    }
+
+    [[nodiscard]] Iterator end() noexcept {
+        return Iterator(pool_.end(), pool_.end());
+    }
+};
+

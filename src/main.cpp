@@ -1,25 +1,38 @@
 #include "lib.hpp"
 #include <cassert>
-#include <cstdint>
 #include <iostream>
 
-int main(int, char **) {
-  std::cout << "Version: " << version() << std::endl;
+int main() {
 
-  print_ip(std::int8_t{-1});
+  Matrix<int, 0> matrix;
 
-  print_ip(std::int16_t{0});
-  
-  print_ip(std::int32_t{2130706433});
+  for (std::size_t i = 0; i < 10; ++i) {
 
-  print_ip(std::int64_t{8875824491850138409});
-  
-  print_ip(std::string{"Hello,World!"});
-  
-  print_ip(std::vector<int>{100,200,300,400 });
+    matrix[i][i] = i;
+  }
 
-  print_ip(std::list<short>{400,300,200,100 });
+  for (std::size_t i = 9; i > 0; --i) {
 
-  print_ip(std::make_tuple(123,456,789,0 ));
+    matrix[9 - i][i] = i;
+  }
+
+  for (std::size_t i = 1; i < 9; ++i) {
+
+    for (std::size_t j = 1; j < 9; ++j) {
+      std::cout << matrix[i][j] << " ";
+    }
+
+    std::cout << std::endl;
+  }
+
+  std::cout << "size matrix " << matrix.size() << std::endl;
+
+  for (auto [r, c, v] : matrix) {
+    std::cout << " r " << r << " c " << c << " v " << v << std::endl;
+  }
+
+  ((matrix[100][100] = 314) = 0) = 217;
+
+  std::cout << matrix[100][100] << std::endl;
   return 0;
 }
