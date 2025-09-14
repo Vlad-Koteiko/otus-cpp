@@ -8,6 +8,7 @@ on:
       - allocator
       - SFINAE
       - editor 
+      - matrix
       - feature/github_actions
 
 jobs:
