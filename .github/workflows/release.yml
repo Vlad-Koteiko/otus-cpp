@@ -7,6 +7,7 @@ on:
       - ip_filter
       - allocator
       - SFINAE
+      - editor 
       - feature/github_actions
 
 jobs:
@@ -43,7 +44,6 @@ jobs:
           asset_content_type: application/vnd.debian.binary-package
   doxygen:
     needs: build
-    if: github.ref == 'refs/heads/SFINAE'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
