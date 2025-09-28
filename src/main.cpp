@@ -1,38 +1,39 @@
 #include "lib.hpp"
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <string>
 
-int main() {
+int main([[maybe_unused]] int argc, char *argv[]) {
 
-  Matrix<int, 0> matrix;
+  std::string line;
+  Pool pool;
+  std::ofstream file("bulk.log");
+  auto time = std::chrono::system_clock::now();
 
-  for (std::size_t i = 0; i < 10; ++i) {
+  if (file.is_open()) {
 
-    matrix[i][i] = i;
-  }
-
-  for (std::size_t i = 9; i > 0; --i) {
-
-    matrix[9 - i][i] = i;
-  }
-
-  for (std::size_t i = 1; i < 9; ++i) {
-
-    for (std::size_t j = 1; j < 9; ++j) {
-      std::cout << matrix[i][j] << " ";
+    for (int i = 0; i < std::stol(argv[1]); ++i) {
+      std::getline(std::cin, line);
+      time = std::chrono::system_clock::now();
+      if (line == "\0") {
+        break;
+      } else if (line == "{") {
+        dinamikBlok(pool, file);
+        --i;
+      } else {
+        pool.push_back(line);
+      }
     }
 
-    std::cout << std::endl;
+    printPool(pool, file);
+    file.close();
   }
 
-  std::cout << "size matrix " << matrix.size() << std::endl;
+  std::time_t seconds = std::chrono::system_clock::to_time_t(time);
+  std::string newFileName = "bulk" + std::to_string(seconds) + ".log";
+  std::filesystem::rename("bulk.log", newFileName);
 
-  for (auto [r, c, v] : matrix) {
-    std::cout << " r " << r << " c " << c << " v " << v << std::endl;
-  }
-
-  ((matrix[100][100] = 314) = 0) = 217;
-
-  std::cout << matrix[100][100] << std::endl;
   return 0;
 }

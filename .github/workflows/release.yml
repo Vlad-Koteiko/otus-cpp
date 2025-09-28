@@ -9,6 +9,7 @@ on:
       - SFINAE
       - editor 
       - matrix
+      - parser
       - feature/github_actions
 
 jobs:
