@@ -10,6 +10,7 @@ on:
       - editor 
       - matrix
       - parser
+      - boost
       - feature/github_actions
 
 jobs:

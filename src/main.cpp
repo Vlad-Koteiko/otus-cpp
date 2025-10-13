@@ -1,39 +1,15 @@
 #include "lib.hpp"
-#include <cassert>
-#include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <string>
 
-int main([[maybe_unused]] int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
-  std::string line;
-  Pool pool;
-  std::ofstream file("bulk.log");
-  auto time = std::chrono::system_clock::now();
+  auto config = cmpRead(argc, argv);
 
-  if (file.is_open()) {
+  auto resuld = run(config);
 
-    for (int i = 0; i < std::stol(argv[1]); ++i) {
-      std::getline(std::cin, line);
-      time = std::chrono::system_clock::now();
-      if (line == "\0") {
-        break;
-      } else if (line == "{") {
-        dinamikBlok(pool, file);
-        --i;
-      } else {
-        pool.push_back(line);
-      }
-    }
-
-    printPool(pool, file);
-    file.close();
+  for (const auto &s : resuld) {
+    std::cout << s << std::endl;
   }
-
-  std::time_t seconds = std::chrono::system_clock::to_time_t(time);
-  std::string newFileName = "bulk" + std::to_string(seconds) + ".log";
-  std::filesystem::rename("bulk.log", newFileName);
 
   return 0;
 }

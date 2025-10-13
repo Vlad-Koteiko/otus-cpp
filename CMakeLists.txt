@@ -8,6 +8,8 @@ project(print_ip VERSION ${PROJECT_VESRION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
+find_package(Boost COMPONENTS program_options filesystem REQUIRED)
+
 configure_file(version.h.in version.h)
 
 set(SOURCE_FILE 
@@ -21,6 +23,11 @@ set(LIBS_FILE
 add_executable(helloworld_cli ${SOURCE_FILE})
 
 add_library(print_ip ${LIBS_FILE})
+
+target_link_libraries(print_ip PRIVATE
+    Boost::program_options 
+    Boost::filesystem
+)
 
 set_target_properties(helloworld_cli print_ip PROPERTIES
     CXX_STANDARD 20
@@ -59,11 +66,11 @@ if(WITH_BOOST_TEST)
 endif()
 
     target_compile_options(helloworld_cli PRIVATE
-        -Wall -Wextra -pedantic -Werror -flto -fsanitize=address,undefined
+        -Wall -Wextra -pedantic -Werror -flto 
     )
 
     target_compile_options(print_ip PRIVATE
-        -Wall -Wextra -pedantic -Werror     
+        -Wall -Wextra -pedantic -Werror 
     )
     
     if(WITH_BOOST_TEST)
