@@ -87,9 +87,16 @@ Config cmpRead(int argc, char *argv[]) {
   cmp::options_description desc("Options");
 
   for (auto str : options) {
-    desc.add_options()(str, cmp::value<std::string>(), " ");
     config.insert({str, " "});
   }
+
+  desc.add_options()
+      (options[0], "Показать справку")
+      (options[1], cmp::value<std::string>()->default_value(" "), "директории для сканирования")
+      (options[2], cmp::value<std::string>()->default_value(" "), "директории для исключения из сканирования")
+      (options[3], cmp::value<std::string>()->default_value("1"), "уровень сканирования (1 на все директории 0 только указанная)")
+      (options[4], cmp::value<std::string>()->default_value("1"), "минимальный размер файла в байтах")
+      (options[5], cmp::value<std::string>()->default_value("5"), "размер блока, которым производится чтения файлов");
 
   cmp::variables_map vm;
   cmp::store(cmp::parse_command_line(argc, argv, desc), vm);
@@ -101,9 +108,10 @@ Config cmpRead(int argc, char *argv[]) {
     }
   }
 
-  if (vm.count("help"))
+  if (vm.count("help")){
     std::cout << desc << std::endl;
-
+    exit(0);
+  }
   return config;
 }
 

@@ -20,7 +20,7 @@ set(LIBS_FILE
        ./libs/lib.cpp
 )
 
-add_executable(helloworld_cli ${SOURCE_FILE})
+add_executable(bayan ${SOURCE_FILE})
 
 add_library(print_ip ${LIBS_FILE})
 
@@ -29,19 +29,19 @@ target_link_libraries(print_ip PRIVATE
     Boost::filesystem
 )
 
-set_target_properties(helloworld_cli print_ip PROPERTIES
+set_target_properties(bayan print_ip PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
 
 
-target_include_directories(helloworld_cli PRIVATE libs)
+target_include_directories(bayan PRIVATE libs)
 
 target_include_directories(print_ip
     PRIVATE "${CMAKE_BINARY_DIR}"
 )
 
-target_link_libraries(helloworld_cli PRIVATE
+target_link_libraries(bayan PRIVATE
     print_ip
 )
 
@@ -65,7 +65,7 @@ if(WITH_BOOST_TEST)
     )
 endif()
 
-    target_compile_options(helloworld_cli PRIVATE
+    target_compile_options(bayan PRIVATE
         -Wall -Wextra -pedantic -Werror -flto 
     )
 
@@ -81,7 +81,7 @@ endif()
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined")
 
-install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
+install(TARGETS bayan RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
