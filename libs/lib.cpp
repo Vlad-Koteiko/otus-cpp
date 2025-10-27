@@ -13,6 +13,11 @@ std::vector<fs::path> getFileName(const Config &config) {
   std::size_t level = std::stoul(config.find("level")->second);
   std::size_t size = std::stoul(config.find("minSize")->second);
 
+  if(level > 1) {
+    std::cout << "incorrect argument level" << std::endl;
+    exit(0);
+  }
+
   if (level == 1) {
 
     for (const auto &entry : fs::recursive_directory_iterator(path)) {
@@ -95,7 +100,7 @@ Config cmpRead(int argc, char *argv[]) {
       ("scan,s", cmp::value<std::string>()->default_value(" "), "директории для сканирования")
       ("exc,e", cmp::value<std::string>()->default_value(" "), "директории для исключения из сканирования")
       ("level,l", cmp::value<std::string>()->default_value("1"), "уровень сканирования (1 на все директории 0 только указанная)")
-      ("minSize,s", cmp::value<std::string>()->default_value("1"), "минимальный размер файла в байтах")
+      ("minSize,m", cmp::value<std::string>()->default_value("1"), "минимальный размер файла в байтах")
       ("blok,b", cmp::value<std::string>()->default_value("5"), "размер блока, которым производится чтения файлов");
 
   cmp::variables_map vm;
