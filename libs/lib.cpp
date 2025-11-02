@@ -132,18 +132,23 @@ auto run(const Config &config) -> std::vector<fs::path> {
   std::vector<fs::path> resuld;
 
   for (const auto &s : poolFile) {
+    bool find = false;
     for (const auto &i : poolFile) {
       if (s != i) {
         if (detail::compare(s, i, size)) {
           if (std::find(resuld.begin(), resuld.end(), s) == resuld.end()) {
             resuld.push_back(s);
+            find = true;
           }
           if (std::find(resuld.begin(), resuld.end(), i) == resuld.end()) {
             resuld.push_back(i);
-            resuld.push_back("\n");
+            find = true;
           }
         }
       }
+    }
+    if (find) {
+      resuld.push_back("");
     }
   }
 
