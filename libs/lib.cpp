@@ -13,7 +13,7 @@ std::vector<fs::path> getFileName(const Config &config) {
   std::size_t level = std::stoul(config.find("level")->second);
   std::size_t size = std::stoul(config.find("minSize")->second);
 
-  if(level > 1) {
+  if (level > 1) {
     std::cout << "incorrect argument level" << std::endl;
     exit(0);
   }
@@ -21,7 +21,7 @@ std::vector<fs::path> getFileName(const Config &config) {
   if (level == 1) {
 
     for (const auto &entry : fs::recursive_directory_iterator(path)) {
-      if ((entry != exc) && (entry.path().extension() == ".txt") &&
+      if ((entry != exc) && entry.is_regular_file() &&
           (entry.path().size() > size)) {
         pool.push_back(entry.path());
       }
@@ -30,7 +30,7 @@ std::vector<fs::path> getFileName(const Config &config) {
   } else {
 
     for (const auto &entry : fs::directory_iterator(path)) {
-      if ((entry != exc) && (entry.path().extension() == ".txt") &&
+      if ((entry != exc) && entry.is_regular_file() &&
           (entry.path().size() > size)) {
         pool.push_back(entry.path());
       }
@@ -95,13 +95,17 @@ Config cmpRead(int argc, char *argv[]) {
     config.insert({str, " "});
   }
 
-  desc.add_options()
-      ("help,h", "Показать справку")
-      ("scan,s", cmp::value<std::string>()->default_value(" "), "директории для сканирования")
-      ("exc,e", cmp::value<std::string>()->default_value(" "), "директории для исключения из сканирования")
-      ("level,l", cmp::value<std::string>()->default_value("1"), "уровень сканирования (1 на все директории 0 только указанная)")
-      ("minSize,m", cmp::value<std::string>()->default_value("1"), "минимальный размер файла в байтах")
-      ("blok,b", cmp::value<std::string>()->default_value("5"), "размер блока, которым производится чтения файлов");
+  desc.add_options()("help,h", "Показать справку")(
+      "scan,s", cmp::value<std::string>()->default_value(" "),
+      "директории для сканирования")(
+      "exc,e", cmp::value<std::string>()->default_value(" "),
+      "директории для исключения из сканирования")(
+      "level,l", cmp::value<std::string>()->default_value("1"),
+      "уровень сканирования (1 на все директории 0 только указанная)")(
+      "minSize,m", cmp::value<std::string>()->default_value("1"),
+      "минимальный размер файла в байтах")(
+      "blok,b", cmp::value<std::string>()->default_value("5"),
+      "размер блока, которым производится чтения файлов");
 
   cmp::variables_map vm;
   cmp::store(cmp::parse_command_line(argc, argv, desc), vm);
@@ -113,7 +117,7 @@ Config cmpRead(int argc, char *argv[]) {
     }
   }
 
-  if (vm.count("help")){
+  if (vm.count("help")) {
     std::cout << desc << std::endl;
     exit(0);
   }
@@ -134,7 +138,7 @@ auto run(const Config &config) -> std::vector<fs::path> {
           if (std::find(resuld.begin(), resuld.end(), s) == resuld.end()) {
             resuld.push_back(s);
           }
-           if (std::find(resuld.begin(), resuld.end(), i) == resuld.end()) {
+          if (std::find(resuld.begin(), resuld.end(), i) == resuld.end()) {
             resuld.push_back(i);
             resuld.push_back("\n");
           }
