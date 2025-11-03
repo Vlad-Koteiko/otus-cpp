@@ -4,9 +4,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 
-project(async VERSION ${PROJECT_VESRION})
+project(bulk_server VERSION ${PROJECT_VESRION})
 
 find_program(CLANG_FORMAT clang-format)
+
+find_package(boost_system QUIET)
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
@@ -20,24 +22,24 @@ set(LIBS_FILE
        ./libs/async.cpp
 )
 
-add_executable(helloworld_cli ${SOURCE_FILE})
+add_executable(${PROJECT_NAME} ${SOURCE_FILE})
 
 add_library(libasync ${LIBS_FILE})
 
-set_target_properties(helloworld_cli libasync PROPERTIES
+set_target_properties(${PROJECT_NAME} libasync PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
 
 
-target_include_directories(helloworld_cli PRIVATE libs)
+target_include_directories(${PROJECT_NAME} PRIVATE libs)
 
 target_include_directories(libasync 
     PRIVATE "${CMAKE_BINARY_DIR}"
 )
 
-target_link_libraries(helloworld_cli PRIVATE
-    libasync 
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    libasync
 )
 
 if(WITH_BOOST_TEST)
@@ -60,8 +62,8 @@ if(WITH_BOOST_TEST)
      )
 endif()
 
-    target_compile_options(helloworld_cli PRIVATE
-        -Wall -Wextra -pedantic -Werror -flto -fsanitize=address,undefined
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wall -Wextra -pedantic -Werror -flto 
     )
 
     target_compile_options(libasync PRIVATE
@@ -74,9 +76,7 @@ endif()
         )
     endif()
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined")
-
-install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")

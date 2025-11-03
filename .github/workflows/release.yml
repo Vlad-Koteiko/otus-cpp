@@ -11,6 +11,7 @@ on:
       - matrix
       - parser
       - asynParser
+      - boost_asio
       - feature/github_actions
 
 jobs:

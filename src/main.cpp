@@ -1,21 +1,9 @@
 #include <cassert>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
+#include <server.hpp>
 #include <string>
 
-#include "async.hpp"
-
 int main([[maybe_unused]] int argc, char* argv[]) {
-  std::string line = " ";
-  Context* ctx     = connect(std::stol(argv[1]));
-
-  while (line != "\0") {
-    std::getline(std::cin, line);
-    receive(ctx, line);
-  }
-
-  disconnect(ctx);
-
+  server::Server server(std::stol(argv[1]), std::stol(argv[2]));
+  server.run();
   return 0;
 }

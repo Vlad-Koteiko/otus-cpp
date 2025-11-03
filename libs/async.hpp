@@ -19,23 +19,26 @@
 #include <thread>
 #include <vector>
 
-struct Context {
-  size_t block_size;
-  std::vector<std::string> current_commands;
-  std::chrono::system_clock::time_point start_time;
-  size_t brace_depth {0};
-  size_t block_counter {0};
-  std::atomic<bool> dynamic_block {false};
+namespace async {
 
-  Context(size_t bs) : block_size(bs) {
-    start_time = std::chrono::system_clock::now();
-  }
-};
+  struct Context {
+    size_t block_size;
+    std::vector<std::string> current_commands;
+    std::chrono::system_clock::time_point start_time;
+    size_t brace_depth {0};
+    size_t block_counter {0};
+    std::atomic<bool> dynamic_block {false};
 
-[[nodiscard]] Context* connect(size_t block_size);
+    Context(size_t bs) : block_size(bs) {
+      start_time = std::chrono::system_clock::now();
+    }
+  };
 
-void receive(Context* handle, std::string_view str);
+  [[nodiscard]] Context* connect(size_t block_size);
 
-void disconnect(Context* handle);
+  void receive(Context* handle, std::string_view str);
 
+  void disconnect(Context* handle);
+
+}  // namespace async
 #endif  // ASYNC_H
