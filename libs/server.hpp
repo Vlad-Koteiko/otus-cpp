@@ -6,7 +6,7 @@
 #include <memory>
 #include <utility>
 
-#include "async.hpp"
+#include "commander.hpp"
 
 namespace server {
 
@@ -15,9 +15,9 @@ namespace server {
   namespace details {
 
     struct Session : public std::enable_shared_from_this<Session> {
-      Session(tcp::socket socket, async::Context* p)
+      Session(tcp::socket socket, commander::Boss& b)
           : socket_(std::move(socket))
-          , ptr(p) {}
+          , boss(b) {}
 
       void start() { do_read(); }
 
@@ -40,46 +40,57 @@ namespace server {
             boost::asio::buffer(data_, max_length),
             [this, self](boost::system::error_code ec, std::size_t length) {
               if (!ec) {
-                auto pool = splitStringByNewline({data_, length});
-                for (auto& s : pool) {
-                  receive(ptr, s);
+                auto p = boss.run({data_, length});
+                for (const auto& str : p.value()) {
+                  do_write(str);
+                  do_write("\n\r");
                 }
               }
             });
       }
+
+      void do_write(const std::string& str) {
+        auto self(shared_from_this());
+        boost::asio::async_write(
+            socket_,
+            boost::asio::buffer(str.data(), str.length()),
+            [self](boost::system::error_code ec, std::size_t) {
+              if (!ec) {
+              }
+            });
+      }
+
       tcp::socket socket_;
-      async::Context* ptr;
+      commander::Boss& boss;
       enum { max_length = 1024 };
       char data_[max_length];
     };
   }  // namespace details
 
   struct Server {
-    Server(short port, std::uint8_t line)
+    Server(short port)
         : io_context()
         , acceptor(io_context, tcp::endpoint(tcp::v4(), port)) {
-      global_ctx = async::connect(line);
       do_accept();
     }
     void run() { io_context.run(); }
 
-    ~Server() { async::disconnect(global_ctx); }
+    ~Server() {}
 
    private:
     void do_accept() {
-      acceptor.async_accept(
-          [this](boost::system::error_code ec, tcp::socket socket) {
-            if ((!ec) and (global_ctx != nullptr)) {
-              std::make_shared<details::Session>(std::move(socket), global_ctx)
-                  ->start();
-            }
-            do_accept();
-          });
+      acceptor.async_accept([this](boost::system::error_code ec,
+                                   tcp::socket socket) {
+        if (!ec) {
+          std::make_shared<details::Session>(std::move(socket), boss)->start();
+        }
+        do_accept();
+      });
     }
 
     boost::asio::io_context io_context;
     tcp::acceptor acceptor;
-    async::Context* global_ctx = nullptr;
+    commander::Boss boss;
   };
 
 }  // namespace server

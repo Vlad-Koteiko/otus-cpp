@@ -4,11 +4,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 
-project(bulk_server VERSION ${PROJECT_VESRION})
+project(join_server VERSION ${PROJECT_VESRION})
 
 find_program(CLANG_FORMAT clang-format)
 
 find_package(boost_system QUIET)
+
+# Поиск SQLite3
+find_library(SQLITE3_LIB sqlite3)
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
@@ -19,7 +22,8 @@ set(SOURCE_FILE
 )
 
 set(LIBS_FILE 
-       ./libs/async.cpp
+       ./libs/bd.cpp
+       ./libs/commander.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})
@@ -40,6 +44,7 @@ target_include_directories(libasync
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     libasync
+    ${SQLITE3_LIB}
 )
 
 if(WITH_BOOST_TEST)
@@ -58,7 +63,8 @@ if(WITH_BOOST_TEST)
 
     target_link_libraries(test_version
         ${Boost_LIBRARIES}
-        libasync 
+        libasync
+        ${SQLITE3_LIB}
      )
 endif()
 
