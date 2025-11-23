@@ -4,7 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 
-project(join_server VERSION ${PROJECT_VESRION})
+project(ml VERSION ${PROJECT_VESRION})
 
 find_program(CLANG_FORMAT clang-format)
 
@@ -22,8 +22,7 @@ set(SOURCE_FILE
 )
 
 set(LIBS_FILE 
-       ./libs/bd.cpp
-       ./libs/commander.cpp
+       ./libs/logreg_classifier.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILE})

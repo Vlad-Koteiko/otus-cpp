@@ -1,115 +1,64 @@
 #define BOOST_TEST_MODULE test_version
 
 #include <boost/test/unit_test.hpp>
+#include <fstream>
+#include <iterator>
+#include <sstream>
+#include <string>
 
-#include "libs/bd.hpp"
-#include "libs/commander.hpp"
+#include "libs/classifier.h"
+#include "libs/logreg_classifier.h"
+
+using namespace ::kdd99;
+
+bool read_features(std::istream& stream,
+                   kdd99::BinaryClassifier::features_t& features) {
+  std::string line;
+  std::getline(stream, line);
+
+  features.clear();
+  std::istringstream linestream {line};
+  double value;
+  while (linestream >> value) {
+    features.push_back(value);
+  }
+  return stream.good();
+}
+
+std::vector<float> read_vector(std::istream& stream) {
+  std::vector<float> result;
+
+  std::copy(std::istream_iterator<float>(stream),
+            std::istream_iterator<float>(),
+            std::back_inserter(result));
+  return result;
+}
 
 BOOST_AUTO_TEST_SUITE(test_version)
 
 BOOST_AUTO_TEST_CASE(TestBD) {
-  bd::DataBase db;
+  std::ifstream istream {"../logreg_coef.txt"};
+  BOOST_REQUIRE(istream.is_open());
+  auto coef = read_vector(istream);
+  istream.close();
 
-  auto f = db.insert(bd::TABLE::A, {4, "test1"});
-  f      = db.insert(bd::TABLE::A, {5, "test2"});
-  if (f) {
-  }
-  auto t = db.getTable(bd::TABLE::A);
+  auto predictor = LogregClassifier {coef};
 
-  for (auto tt : t) {
-    std::cout << "A id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
-  f = db.clearTable(bd::TABLE::A);
-  std::cout << "claer teble --------------------------" << std::endl;
-  t = db.getTable(bd::TABLE::A);
+  auto features = LogregClassifier::features_t {};
 
-  for (auto tt : t) {
-    std::cout << "id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
+  double y_pred_expected = 0.0;
 
-  f = db.insert(bd::TABLE::B, {4, "test3"});
-  f = db.insert(bd::TABLE::B, {5, "test4"});
-  if (f) {
+  std::ifstream test_data {"../test_data_logreg.txt"};
+  BOOST_REQUIRE(test_data.is_open());
+  for (;;) {
+    test_data >> y_pred_expected;
+    if (!read_features(test_data, features)) {
+      break;
+    }
+    auto y_pred = predictor.predict_proba(features);
+    std::cout << "y_pred " << y_pred << " y_pred_expected " << y_pred_expected << " size " << features.size() << " size coef " << coef.size() << std::endl;
+    // BOOST_TEST(y_pred_expected == y_pred, boost::test_tools::tolerance(1e-5));
   }
-  t = db.getTable(bd::TABLE::B);
-
-  for (auto tt : t) {
-    std::cout << "B id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
-  f = db.clearTable(bd::TABLE::B);
-  std::cout << "claer teble --------------------------" << std::endl;
-  t = db.getTable(bd::TABLE::B);
-
-  for (auto tt : t) {
-    std::cout << "id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
-}
-
-BOOST_AUTO_TEST_CASE(TestCommander) {
-  std::cout << "------------COMMANDER----------------" << std::endl;
-  commander::Boss boss;
-
-  auto f = boss.run("INSERT A 0 lean");
-
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-
-  f = boss.run("INSERT A 0 understand");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT A 1 sweater");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT A 11 sweater");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT A 2 frank");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 6 flour");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 7 wonder");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 0 selection");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 1 flour");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 2 wonder");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 8 selection");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  // f = boss.run("TRUNCATE A");
-  // std::cout << f << std::endl;
-
-  f = boss.run("INTERSECTION");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("SYMMETRIC_DIFFERENCE");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  // f = boss.run("SYMMETRIC_");
-  // for (auto s : f.value()) {
-  //   std::cout << s << std::endl;
-  // }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
