@@ -4,7 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 
-project(ml VERSION ${PROJECT_VESRION})
+project(fashio_mnist VERSION ${PROJECT_VESRION})
 
 find_program(CLANG_FORMAT clang-format)
 

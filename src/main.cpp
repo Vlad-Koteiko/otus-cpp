@@ -23,42 +23,55 @@ bool read_features(std::istream& stream,
   return stream.good();
 }
 
-std::vector<float> read_vector(std::istream& stream) {
-  std::vector<float> result;
+std::vector<LogregClassifier> read_vector(std::istream& stream) {
+  std::vector<LogregClassifier> classifiers;
+  std::string line;
 
-  std::copy(std::istream_iterator<float>(stream),
-            std::istream_iterator<float>(),
-            std::back_inserter(result));
-  return result;
+  while (std::getline(stream, line)) {
+    if (line.empty())
+      continue;
+
+    std::istringstream iss(line);
+    std::vector<float> coef((std::istream_iterator<float>(iss)),
+                            std::istream_iterator<float>());
+
+    classifiers.emplace_back(coef);
+  }
+
+  return classifiers;
 }
 
 int main([[maybe_unused]] int argc, char* argv[]) {
-  
-  std::ifstream istream {argv[1]};
+  std::ifstream istream {argv[2]};
   if (istream.is_open()) {
   }
-  auto coef = read_vector(istream);
+  auto predictor = read_vector(istream);
   istream.close();
-
-  auto predictor = LogregClassifier {coef};
 
   auto features = LogregClassifier::features_t {};
 
   double y_pred_expected = 0.0;
 
-  std::ifstream test_data {argv[2]};
+  std::ifstream test_data {argv[1]};
   if (test_data.is_open()) {
   }
+
+  std::size_t count = 0;
+  double sum        = 0.0;
 
   for (;;) {
     test_data >> y_pred_expected;
     if (!read_features(test_data, features)) {
       break;
     }
-    auto y_pred = predictor.predict_proba(features);
-    std::cout << "class-> " << y_pred_expected << " coefficient " << y_pred
-              << std::endl;
+    auto y_pred = predictor[y_pred_expected].predict_proba(features);
+    sum += y_pred;
+    ++count;
+    // std::cout << "class-> " << y_pred_expected << " coefficient " << y_pred
+    //           << std::endl;
   }
+
+  std::cout << sum / count << std::endl;
 
   return 0;
 }
