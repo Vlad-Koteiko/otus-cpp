@@ -12,10 +12,10 @@ namespace kdd99 {
 
     LogregClassifier(const coef_t& coef);
 
-    float predict_proba(const features_t& feat) const override;
+    double predict_proba(const features_t& feat) const override;
 
    protected:
-    std::vector<float> coef_;
+    std::vector<double> coef_;
   };
 
 }  // namespace kdd99

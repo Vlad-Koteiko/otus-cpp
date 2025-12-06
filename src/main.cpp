@@ -32,9 +32,8 @@ std::vector<LogregClassifier> read_vector(std::istream& stream) {
       continue;
 
     std::istringstream iss(line);
-    std::vector<float> coef((std::istream_iterator<float>(iss)),
-                            std::istream_iterator<float>());
-
+    std::vector<double> coef((std::istream_iterator<double>(iss)),
+                             std::istream_iterator<double>());
     classifiers.emplace_back(coef);
   }
 
@@ -43,35 +42,47 @@ std::vector<LogregClassifier> read_vector(std::istream& stream) {
 
 int main([[maybe_unused]] int argc, char* argv[]) {
   std::ifstream istream {argv[2]};
-  if (istream.is_open()) {
-  }
   auto predictor = read_vector(istream);
   istream.close();
 
-  auto features = LogregClassifier::features_t {};
-
-  double y_pred_expected = 0.0;
-
   std::ifstream test_data {argv[1]};
-  if (test_data.is_open()) {
-  }
 
-  std::size_t count = 0;
-  double sum        = 0.0;
+  kdd99::BinaryClassifier::features_t features;
+  int correct = 0;
+  int total   = 0;
 
-  for (;;) {
-    test_data >> y_pred_expected;
-    if (!read_features(test_data, features)) {
+  double y_true = 0.0;
+
+  while (true) {
+    if (!(test_data >> y_true))
       break;
+
+    if (!read_features(test_data, features))
+      break;
+
+    int predicted_class = 0;
+    double best_prob    = -1.0;
+
+    std::cout << "-------------------  ------------------------" << std::endl;
+    for (size_t i = 0; i < 10; ++i) {
+      double p = predictor[i].predict_proba(features);
+      std::cout << i << " conf-> " << p << std::endl;
+      if (p > best_prob) {
+        best_prob       = p;
+        predicted_class = i;
+      }
     }
-    auto y_pred = predictor[y_pred_expected].predict_proba(features);
-    sum += y_pred;
-    ++count;
-    // std::cout << "class-> " << y_pred_expected << " coefficient " << y_pred
-    //           << std::endl;
+
+    std::cout << "test number-> " << y_true << " calculater number-> "
+              << predicted_class << std::endl;
+
+    if (predicted_class == static_cast<int>(y_true))
+      correct++;
+
+    total++;
   }
 
-  std::cout << sum / count << std::endl;
+  std::cout << (double)correct / total << std::endl;
 
   return 0;
 }

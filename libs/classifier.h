@@ -6,11 +6,11 @@ namespace kdd99 {
 
   class BinaryClassifier {
    public:
-    using features_t = std::vector<float>;
+    using features_t = std::vector<double>;
 
     virtual ~BinaryClassifier() {}
 
-    virtual float predict_proba(const features_t&) const = 0;
+    virtual double predict_proba(const features_t&) const = 0;
   };
 
 }  // namespace kdd99
