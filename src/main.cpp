@@ -1,7 +1,7 @@
-#include <server.hpp>
+#include "server.hpp"
 #include <string>
 
-int main([[maybe_unused]] int argc, char* argv[]) {
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
  
   server::Server server(std::stol(argv[1]));
   server.run();

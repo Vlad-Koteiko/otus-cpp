@@ -1,12 +1,13 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+
 #include <boost/asio.hpp>
 #include <cstdlib>
 #include <memory>
 #include <utility>
 
-#include "commander.hpp"
+import commander;
 
 namespace server {
 
@@ -15,7 +16,7 @@ namespace server {
   namespace details {
 
     struct Session : public std::enable_shared_from_this<Session> {
-      Session(tcp::socket socket, commander::Boss& b)
+      Session(tcp::socket socket, Boss& b)
           : socket_(std::move(socket))
           , boss(b) {}
 
@@ -61,7 +62,7 @@ namespace server {
       }
 
       tcp::socket socket_;
-      commander::Boss& boss;
+      Boss& boss;
       enum { max_length = 1024 };
       char data_[max_length];
     };
@@ -90,7 +91,7 @@ namespace server {
 
     boost::asio::io_context io_context;
     tcp::acceptor acceptor;
-    commander::Boss boss;
+    Boss boss;
   };
 
 }  // namespace server
