@@ -3,6 +3,7 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+#include <algorithm>
 
 #include "../libs/classifier.h"
 #include "../libs/logreg_classifier.h"
@@ -15,6 +16,7 @@ bool read_features(std::istream& stream,
   std::getline(stream, line);
 
   features.clear();
+  std::replace(line.begin(), line.end(), ',', ' ');
   std::istringstream linestream {line};
   double value;
   while (linestream >> value) {
@@ -63,18 +65,18 @@ int main([[maybe_unused]] int argc, char* argv[]) {
     int predicted_class = 0;
     double best_prob    = -1.0;
 
-    std::cout << "-------------------  ------------------------" << std::endl;
+    // std::cout << "-------------------  ------------------------" << std::endl;
     for (size_t i = 0; i < 10; ++i) {
       double p = predictor[i].predict_proba(features);
-      std::cout << i << " conf-> " << p << std::endl;
+      // std::cout << i << " conf-> " << p << std::endl;
       if (p > best_prob) {
         best_prob       = p;
         predicted_class = i;
       }
     }
 
-    std::cout << "test number-> " << y_true << " calculater number-> "
-              << predicted_class << std::endl;
+    // std::cout << "test number-> " << y_true << " calculater number-> "
+              // << predicted_class << std::endl;
 
     if (predicted_class == static_cast<int>(y_true))
       correct++;
