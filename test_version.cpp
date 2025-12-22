@@ -1,115 +1,76 @@
 #define BOOST_TEST_MODULE test_version
 
 #include <boost/test/unit_test.hpp>
+#include <filesystem>
 
-#include "libs/bd.hpp"
-#include "libs/commander.hpp"
+import commander;
 
 BOOST_AUTO_TEST_SUITE(test_version)
 
-BOOST_AUTO_TEST_CASE(TestBD) {
-  bd::DataBase db;
-
-  auto f = db.insert(bd::TABLE::A, {4, "test1"});
-  f      = db.insert(bd::TABLE::A, {5, "test2"});
-  if (f) {
-  }
-  auto t = db.getTable(bd::TABLE::A);
-
-  for (auto tt : t) {
-    std::cout << "A id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
-  f = db.clearTable(bd::TABLE::A);
-  std::cout << "claer teble --------------------------" << std::endl;
-  t = db.getTable(bd::TABLE::A);
-
-  for (auto tt : t) {
-    std::cout << "id ->" << tt.first << " name ->" << tt.second << std::endl;
+struct DBFixture {
+  DBFixture() {
+    std::filesystem::remove("phonebook.db");
+    db = std::make_unique<DataBase>();
   }
 
-  f = db.insert(bd::TABLE::B, {4, "test3"});
-  f = db.insert(bd::TABLE::B, {5, "test4"});
-  if (f) {
+  ~DBFixture() {
+    db.reset();
+    std::filesystem::remove("phonebook.db");
   }
-  t = db.getTable(bd::TABLE::B);
 
-  for (auto tt : t) {
-    std::cout << "B id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
-  f = db.clearTable(bd::TABLE::B);
-  std::cout << "claer teble --------------------------" << std::endl;
-  t = db.getTable(bd::TABLE::B);
+  std::unique_ptr<DataBase> db;
+};
 
-  for (auto tt : t) {
-    std::cout << "id ->" << tt.first << " name ->" << tt.second << std::endl;
-  }
+BOOST_FIXTURE_TEST_CASE(insert_contact, DBFixture) {
+  Contact c {1, "Иван Иванов"};
+
+  BOOST_CHECK(db->insertContact(c));
+
+  auto contacts = db->getContacts();
+  BOOST_CHECK_EQUAL(contacts.size(), 1);
+  BOOST_CHECK_EQUAL(contacts[1], "Иван Иванов");
 }
 
-BOOST_AUTO_TEST_CASE(TestCommander) {
-  std::cout << "------------COMMANDER----------------" << std::endl;
-  commander::Boss boss;
+BOOST_FIXTURE_TEST_CASE(insert_phone, DBFixture) {
+  db->insertContact({1, "Иван Иванов"});
 
-  auto f = boss.run("INSERT A 0 lean");
+  Phone p1 {1, 1, "+79991234567", "mobile"};
+  Phone p2 {2, 1, "+74951234567", "work"};
 
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
+  BOOST_CHECK(db->insertPhone(p1));
+  BOOST_CHECK(db->insertPhone(p2));
 
-  f = boss.run("INSERT A 0 understand");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT A 1 sweater");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT A 11 sweater");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT A 2 frank");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 6 flour");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 7 wonder");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 0 selection");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 1 flour");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 2 wonder");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("INSERT B 8 selection");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  // f = boss.run("TRUNCATE A");
-  // std::cout << f << std::endl;
+  auto phones = db->getPhones(1);
+  BOOST_CHECK_EQUAL(phones.size(), 2);
+}
 
-  f = boss.run("INTERSECTION");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  f = boss.run("SYMMETRIC_DIFFERENCE");
-  for (auto s : f.value()) {
-    std::cout << s << std::endl;
-  }
-  // f = boss.run("SYMMETRIC_");
-  // for (auto s : f.value()) {
-  //   std::cout << s << std::endl;
-  // }
+BOOST_FIXTURE_TEST_CASE(contact_phone_relation, DBFixture) {
+  db->insertContact({1, "Иван Иванов"});
+  db->insertContact({2, "Петр Петров"});
+
+  db->insertPhone({1, 1, "+79991234567", "mobile"});
+  db->insertPhone({2, 2, "+70001112233", "home"});
+
+  auto phones1 = db->getPhones(1);
+  auto phones2 = db->getPhones(2);
+
+  BOOST_CHECK_EQUAL(phones1.size(), 1);
+  BOOST_CHECK_EQUAL(phones2.size(), 1);
+
+  BOOST_CHECK_EQUAL(phones1.begin()->second, "+79991234567");
+  BOOST_CHECK_EQUAL(phones2.begin()->second, "+70001112233");
+}
+
+BOOST_FIXTURE_TEST_CASE(empty_phones, DBFixture) {
+  db->insertContact({1, "Иван Иванов"});
+
+  auto phones = db->getPhones(1);
+  BOOST_CHECK(phones.empty());
+}
+
+BOOST_FIXTURE_TEST_CASE(duplicate_contact_id, DBFixture) {
+  BOOST_CHECK(db->insertContact({1, "Иван"}));
+  BOOST_CHECK(!db->insertContact({1, "Петр"}));  // PRIMARY KEY
 }
 
 BOOST_AUTO_TEST_SUITE_END()
