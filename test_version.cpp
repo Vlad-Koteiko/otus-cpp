@@ -32,7 +32,7 @@ BOOST_FIXTURE_TEST_CASE(insert_contact, DBFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(insert_phone, DBFixture) {
-  db->insertContact({1, "Иван Иванов"});
+  auto b = db->insertContact({1, "Иван Иванов"});
 
   Phone p1 {1, 1, "+79991234567", "mobile"};
   Phone p2 {2, 1, "+74951234567", "work"};
@@ -45,11 +45,11 @@ BOOST_FIXTURE_TEST_CASE(insert_phone, DBFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(contact_phone_relation, DBFixture) {
-  db->insertContact({1, "Иван Иванов"});
-  db->insertContact({2, "Петр Петров"});
+  auto b = db->insertContact({1, "Иван Иванов"});
+  b = db->insertContact({2, "Петр Петров"});
 
-  db->insertPhone({1, 1, "+79991234567", "mobile"});
-  db->insertPhone({2, 2, "+70001112233", "home"});
+  b = db->insertPhone({1, 1, "+79991234567", "mobile"});
+  b = db->insertPhone({2, 2, "+70001112233", "home"});
 
   auto phones1 = db->getPhones(1);
   auto phones2 = db->getPhones(2);
@@ -62,7 +62,7 @@ BOOST_FIXTURE_TEST_CASE(contact_phone_relation, DBFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(empty_phones, DBFixture) {
-  db->insertContact({1, "Иван Иванов"});
+  auto b = db->insertContact({1, "Иван Иванов"});
 
   auto phones = db->getPhones(1);
   BOOST_CHECK(phones.empty());
